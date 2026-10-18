@@ -271,9 +271,12 @@ class GatewayTurnProgressMixin:
         No language tag: Slack mrkdwn renders it as a literal first code line. Verbose shows the FULL
         command; "all"/"new" truncate to one line capped at ``tool_preview_length``. Consecutive
         terminal calls drop the repeated header so back-to-back commands render as adjacent blocks.
+        ``display.tool_progress_terminal_blocks: false`` opts out: the caller then renders the
+        compact one-line label, which collapses repeats into "(×N)".
         """
         if not (
-            getattr(adapter, "supports_code_blocks", False) and tool_name == "terminal" and isinstance(args, dict)
+            getattr(self._ctx, "progress_terminal_blocks", True)
+            and getattr(adapter, "supports_code_blocks", False) and tool_name == "terminal" and isinstance(args, dict)
             and isinstance(args.get("command"), str) and args["command"].strip()
         ):
             return None, None
@@ -288,6 +291,47 @@ class GatewayTurnProgressMixin:
             cmd_short += " ..."
         return f"{header}```\n{cmd_full}\n```", f"{header}```\n{cmd_short}\n```"
 
+    @staticmethod
+    def _progress_path_arg(args) -> Optional[str]:
+        """The file path a file tool was called with, if any."""
+        if isinstance(args, dict):
+            for key in ("path", "file_path", "filepath", "file"):
+                value = args.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+        return None
+
+    @staticmethod
+    def _shorten_path(path: str, cap: int) -> str:
+        """Trim *path* from the FRONT at "/" boundaries to at most *cap* chars; the file name stays whole.
+
+        "/home/u/.hermes/data/media_watchdog/events.log", 30 -> "…/media_watchdog/events.log".
+        A file name that alone exceeds *cap* is shown on its own. ``cap <= 0`` = no limit.
+        """
+        path = path.replace("\\", "/")
+        if cap <= 0 or len(path) <= cap:
+            return path
+        parts = path.rstrip("/").split("/")
+        kept = parts[-1] or path
+        if len(kept) + 2 > cap:
+            return kept
+        for part in reversed(parts[:-1]):
+            if not part or len(part) + 1 + len(kept) + 2 > cap:
+                break
+            kept = f"{part}/{kept}"
+        return "…/" + kept
+
+    def _progress_compact_message(self, tool_name, args, emoji) -> Optional[str]:
+        """``display.tool_progress_compact``: the tool name alone for terminal calls, name + short path
+        for file tools; None = render normally. Identical lines merge into "(×N)" in _progress_emit."""
+        if tool_name == "terminal":
+            return f"{emoji} {tool_name}"
+        path = self._progress_path_arg(args)
+        if path:
+            cap = int(getattr(self._ctx, "progress_path_chars", 30) or 0)
+            return f"{emoji} {tool_name}: {self._shorten_path(path, cap)}"
+        return None
+
     def _progress_build_message(self, tool_name, preview, args) -> Optional[str]:
         """Render the progress line. Verbose mode queues directly (no dedup) and returns None."""
         ctx = self._ctx
@@ -297,6 +341,11 @@ class GatewayTurnProgressMixin:
             adapter = self._runner._delivery_adapter_for(ctx.source)
         except Exception:
             adapter = None
+        if getattr(ctx, "progress_compact", False) and ctx.progress_mode != "verbose":
+            compact = self._progress_compact_message(tool_name, args, emoji)
+            if compact is not None:
+                ctx.last_was_terminal_block[0] = False
+                return compact
         code_full, code_short = self._progress_terminal_blocks(adapter, tool_name, args, emoji)
         verbose = ctx.progress_mode == "verbose"
         code = code_full if verbose else code_short

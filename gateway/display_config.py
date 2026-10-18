@@ -16,6 +16,13 @@ from typing import Any
 _GLOBAL_DEFAULTS: dict[str, Any] = {
     "tool_progress": "all",
     "tool_progress_grouping": "accumulate",  # "accumulate" = edit one bubble; "separate" = one msg per tool
+    # Terminal calls as a fenced command block; False = the compact one-line label, so repeats
+    # collapse into "(×N)" like every other tool.
+    "tool_progress_terminal_blocks": True,
+    # Compact progress: terminal calls show only the tool name and file tools only a shortened
+    # path, so a run of calls collapses into "⚙️ terminal (×N)" instead of one line per command.
+    "tool_progress_compact": False,
+    "tool_progress_path_chars": 30,  # compact mode: path budget, trimmed from the front at "/"
     "show_reasoning": False,
     "reasoning_style": "code",  # "code" (💭 **Reasoning:** + fence), "blockquote" ("> "), "subtext" ("-# " Discord)
     "tool_preview_length": 0,
@@ -193,6 +200,9 @@ _NORMALISERS: dict[str, Any] = {
     "cleanup_progress": _norm_cleanup_progress,
     "live_status": _norm_tristate("full", "off", {"full", "verb", "off"}, extra_truthy={"all"}),
     "tool_progress_grouping": _norm_choice(("accumulate", "separate")),
+    "tool_progress_terminal_blocks": _norm_bool,
+    "tool_progress_compact": _norm_bool,
+    "tool_progress_path_chars": _norm_int,
     "reasoning_style": _norm_choice(("code", "blockquote", "subtext")),
     "tool_preview_length": _norm_int,
 }
