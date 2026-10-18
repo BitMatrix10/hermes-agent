@@ -954,6 +954,13 @@ DEFAULT_CONFIG = {
         # "separate" one message per tool (noisier). Needs tool_progress enabled. Per-platform:
         # display.platforms.<platform>.tool_progress_grouping.
         "tool_progress_grouping": "accumulate",
+        # Terminal calls in gateway progress: true renders the command as a fenced code block;
+        # false keeps the compact one-line label, which collapses repeats into "terminal (×N)".
+        "tool_progress_terminal_blocks": True,
+        # Compact gateway progress: terminal calls show only the tool name, file tools only a path
+        # trimmed from the front to tool_progress_path_chars; repeats collapse into "(×N)".
+        "tool_progress_compact": False,
+        "tool_progress_path_chars": 30,
         # Custom long-running status phrases. Defaults: gateway/assets/status_phrases.yaml.
         # `path`/`paths` = HERMES_HOME-relative YAML files/dirs (or conventional status_phrases.yaml
         # / status_phrases/*.yaml). Keys: status, generic. mode: "append" (default) | "replace".

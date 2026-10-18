@@ -2193,6 +2193,9 @@ This controls both the `text_to_speech` tool and spoken replies in voice mode (`
 display:
   tool_progress: all      # off | new | all | verbose
   tool_progress_command: false  # Enable /verbose slash command in messaging gateway
+  tool_progress_terminal_blocks: true  # Gateway: terminal commands as a code block; false = one-line label
+  tool_progress_compact: false  # Gateway: tool name only for terminal, short path for file tools; repeats → (×N)
+  tool_progress_path_chars: 30  # Compact mode: max path length, trimmed from the front ("…/dir/file.py")
   focus_view: false       # CLI focus view (/focus) — reduced output, display-only
   platforms: {}           # Per-platform display overrides (see below)
   interim_assistant_messages: true  # Gateway: send natural mid-turn assistant updates as separate messages

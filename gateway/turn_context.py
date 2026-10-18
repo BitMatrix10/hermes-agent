@@ -27,6 +27,9 @@ class TurnContext:
     _thinking_enabled: bool = False
     progress_mode: str = "off"
     progress_grouping: str = "grouped"
+    progress_terminal_blocks: bool = True  # display.tool_progress_terminal_blocks
+    progress_compact: bool = False  # display.tool_progress_compact
+    progress_path_chars: int = 30  # display.tool_progress_path_chars
     tool_progress_enabled: bool = False
     progress_queue: Any = None
     log_queue: Any = None
