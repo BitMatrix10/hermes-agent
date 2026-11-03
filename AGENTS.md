@@ -167,3 +167,14 @@ Every former god file is a **facade** (public entry points + the names other pac
 
 Long-form background: `website/docs/developer-guide/`. Workflow rules (PR/issue/review/salvage
 process) live in the `hermes-agent-dev` skill, not here.
+
+<!-- workspace-sync:begin v1 -->
+## Workspace handoff (managed by workspace-sync, do not edit between the markers)
+Assumes this repo sits directly under the workspace root, next to `workspace-sync/`. The commands
+work in bash and PowerShell, from the main checkout or from any git worktree anywhere on disk.
+- **Start of session:** run `python "$(git rev-parse --path-format=absolute --git-common-dir)/../../workspace-sync/tools/handoff.py" recent --days 3 --repo auto`, then read `## Do this now` in `NEXT.md`.
+- **End of any session that changed or decided something:** write ONE handoff, in German, <=15 lines:
+  `## Was passiert ist`, `## Stand`, `## Naechster Schritt`, optional `## Offen/Entscheidung fuer Christoph`:
+  `python "$(git rev-parse --path-format=absolute --git-common-dir)/../../workspace-sync/tools/handoff.py" new --repo auto --title "..." --body "<sections>" --commit-push`
+  Then tell Christoph the same three points in chat.
+<!-- workspace-sync:end -->
